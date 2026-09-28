@@ -162,3 +162,50 @@ export function pick(arr, n) {
 export function randInt(lo, hi) {
   return lo + Math.floor(Math.random() * (hi - lo + 1));
 }
+
+// 明度（CIELAB L*，0 = 黑、100 = 白）
+export function lightness(c) {
+  return rgbToLab(typeof c === 'string' ? hexToRgb(c) : c)[0];
+}
+
+// 與指定 L* 一樣亮的灰色
+export function greyForL(L) {
+  const Y = L > 8 ? ((L + 16) / 116) ** 3 : L / 903.3;
+  const s = Y <= 0.0031308 ? 12.92 * Y : 1.055 * Y ** (1 / 2.4) - 0.055;
+  const v = Math.round(clamp(s, 0, 1) * 255);
+  return rgbToHex([v, v, v]);
+}
+
+// 在純色裡加白（w）、加黑（k），兩者都加就是加灰
+export function tintMix(baseHex, w, k) {
+  const sum = w + k;
+  if (sum > 1) { w /= sum; k /= sum; }
+  const base = hexToRgb(baseHex);
+  return rgbToHex(base.map((c) => c * (1 - w - k) + 255 * w));
+}
+
+// h: 0–360，s、l: 0–1
+export function hslToRgb(h, s, l) {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const [r, g, b] = hsvToRgb(h, 1, 1).map((x) => x / 255);
+  const m = l - c / 2;
+  return [r, g, b].map((x) => Math.round((x * c + m) * 255));
+}
+
+// WCAG 相對亮度與對比度
+export function luminance(c) {
+  const [r, g, b] = (typeof c === 'string' ? hexToRgb(c) : c).map((v) => {
+    v /= 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+export function contrastRatio(a, b) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+export function hexToHsv(hex) {
+  return rgbToHsv(hexToRgb(hex));
+}

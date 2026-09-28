@@ -1,6 +1,10 @@
 // 關卡資料：20 關的名單 + 已完成關卡的教學卡片與題目
 import { HUES12, KIND_NAMES, hsvHex, rgbToHex, pick, shuffle, randInt } from './color-utils.js';
 import { swatch, swatchRow, equation, venn, rainbowBar, wheel12, hueRing } from './visuals.js';
+import { choice, mixQ, C } from './levels/common.js';
+import { CH2 } from './levels/ch2.js';
+import { CH3 } from './levels/ch3.js';
+import { CH4, finalLevel } from './levels/ch4.js';
 
 export const CHAPTERS = [
   { id: 1, name: '顏色從哪裡來', levels: [1, 2, 3, 4, 5] },
@@ -8,19 +12,6 @@ export const CHAPTERS = [
   { id: 3, name: '配色關係', levels: [11, 12, 13, 14, 15, 16] },
   { id: 4, name: '色彩的感覺與應用', levels: [17, 18, 19, 20] },
 ];
-
-// ---------- 題目產生小工具 ----------
-const choice = (prompt, options, answer, explain, visual) => ({
-  type: 'choice', prompt, explain, visual,
-  options: options.map((o) => (typeof o === 'string' ? { label: o } : o)),
-  answer,
-});
-
-const mixQ = (mode, target, prompt, explain, step = 5) => ({
-  type: 'mix', mode, target, prompt, explain, step,
-});
-
-const C = { R: '#ff0000', G: '#00ff00', B: '#0000ff', C: '#00ffff', M: '#ff00ff', Y: '#ffff00', W: '#ffffff', K: '#000000' };
 
 // ---------- 第 1 關：光與色 ----------
 function dominantLightQ() {
@@ -236,6 +227,9 @@ const SUBTITLES = [
   '同一色相做出層次', '色相環上的鄰居', '對比最強的一對', '比互補柔和的對比', '相隔 120° 的三個顏色', '四個顏色的平衡',
   '顏色會騙人', '文字看得清楚嗎？', '情緒與 60-30-10', '綜合設計挑戰',
 ];
+
+Object.assign(IMPLEMENTED, CH2, CH3, CH4);
+IMPLEMENTED[20] = finalLevel(IMPLEMENTED);
 
 export const LEVELS = TITLES.map((title, i) => {
   const id = i + 1;

@@ -1,5 +1,5 @@
 // Service Worker：有網路時抓最新版本並更新快取，離線時使用快取
-const CACHE = 'colorquest-v1';
+const CACHE = 'colorquest-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,13 @@ const ASSETS = [
   './js/games/mix.js',
   './js/games/sort.js',
   './js/games/wheel.js',
+  './js/games/classify.js',
+  './js/games/paint.js',
+  './js/games/contrast.js',
+  './js/levels/common.js',
+  './js/levels/ch2.js',
+  './js/levels/ch3.js',
+  './js/levels/ch4.js',
   './icons/icon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',

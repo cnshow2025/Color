@@ -274,6 +274,76 @@ button { font: inherit; color: inherit; }
 .piece-chip { width: 56px; height: 56px; border-radius: 14px; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .35), var(--shadow); }
 .wheel-wrap { background: var(--surface); border-radius: var(--radius); padding: 8px; box-shadow: var(--shadow); }
 
+/* 選擇題：配色條、文字樣本、計時 */
+.opt-wide { width: 100%; }
+.opt-palette { display: flex; flex: 1; height: 40px; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .3); }
+.opt-palette span { flex: 1; }
+.opt-sample { flex: 1; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 17px; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .25); }
+.timer { height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
+.timer-fill { display: block; height: 100%; width: 100%; background: var(--star); }
+
+/* 混色：無 venn 的比較區 */
+.cmp-row { flex-direction: row; justify-content: center; gap: 14px; }
+.cmp-row .cmp-chip { width: 96px; height: 96px; border-radius: 16px; }
+.cmp-surround { display: grid; place-items: center; width: 128px; height: 128px; border-radius: 16px; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .35); }
+.cmp-surround .cmp-chip { width: 56px; height: 56px; border-radius: 8px; box-shadow: none; }
+
+/* 色環多選 */
+.wseg.picked { stroke: var(--text); stroke-width: 5; stroke-dasharray: none; }
+.wseg[data-mark="given"] { stroke: var(--text); stroke-width: 2; }
+.wstar { font-size: 16px; fill: #fff; text-anchor: middle; dominant-baseline: middle; pointer-events: none; paint-order: stroke; stroke: rgba(0, 0, 0, .55); stroke-width: 3px; }
+
+/* 分類 */
+.cls-pool { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; min-height: 58px; }
+.cls-item { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; border-radius: 12px; padding: 3px; }
+.cls-chip { width: 48px; height: 48px; border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .35), var(--shadow); }
+.cls-label { font-size: 12px; }
+.cls-item.selected { outline: 3px solid var(--text); outline-offset: 1px; transform: translateY(-3px); }
+.cls-item.ok { outline: 3px solid var(--good); }
+.cls-item.bad { outline: 3px solid var(--bad); }
+.cls-fix { font-size: 11px; font-weight: 700; color: var(--bad); max-width: 80px; text-align: center; line-height: 1.2; }
+.cls-bins { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.cls-bin { min-height: 120px; border-radius: var(--radius); background: var(--surface); box-shadow: inset 0 0 0 2px var(--line); padding: 10px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; }
+.cls-bin.ready { box-shadow: inset 0 0 0 2px var(--text); }
+.cls-bin-title { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 6px; justify-content: center; text-align: center; }
+.cls-dot { width: 14px; height: 14px; border-radius: 50%; }
+.cls-bin-items { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.cls-bin-items .cls-chip { width: 36px; height: 36px; border-radius: 9px; }
+
+/* 上色 */
+.paint-canvas { background: var(--surface); border-radius: var(--radius); padding: 10px; box-shadow: var(--shadow); }
+.paint-svg { display: block; width: 100%; max-width: 340px; margin: 0 auto; border-radius: 12px; overflow: hidden; }
+.paint-svg [data-r] { cursor: pointer; stroke: rgba(0, 0, 0, .25); stroke-width: 1.5; transition: fill .15s; }
+.paint-svg [data-r].empty { fill: #e4e4e8; stroke-dasharray: 5 4; }
+.paint-svg [data-r="sky"].empty, .paint-svg [data-r="page"].empty { fill: #f3f3f5; }
+.paint-fixed { fill: #3a3a40; opacity: .75; pointer-events: none; }
+.paint-fixed.light { fill: #fff; opacity: .9; }
+.paint-palette { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.paint-sw { aspect-ratio: 1; border: 0; border-radius: 12px; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .35); }
+.paint-sw.on { outline: 3px solid var(--text); outline-offset: 2px; transform: scale(1.05); }
+
+/* 對比度 */
+.ct-sample { border-radius: var(--radius); padding: 22px 18px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow); }
+.ct-sample b { font-size: 24px; }
+.ct-ratio { text-align: center; font-weight: 800; font-size: 20px; color: var(--bad); font-variant-numeric: tabular-nums; }
+.ct-ratio.ok { color: var(--good); }
+.ct-ratio.ok::after { content: ' ✓'; }
+
+/* 教學圖解 */
+.strip { display: flex; width: 100%; height: 48px; border-radius: 12px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .3); }
+.strip span { flex: 1; display: flex; align-items: flex-end; justify-content: center; }
+.strip i { font-style: normal; font-size: 11px; font-weight: 700; padding: 1px 4px; margin-bottom: 3px; border-radius: 4px; background: rgba(255, 255, 255, .85); color: #222; }
+.sur-pair { display: flex; gap: 12px; justify-content: center; }
+.sur-box { display: grid; place-items: center; width: 130px; height: 130px; border-radius: 14px; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .35); }
+.sur-box span { width: 44px; height: 44px; }
+.txt-sample { width: 100%; border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .3); }
+.txt-sample b { font-size: 20px; }
+.txt-sample small { font-size: 12px; opacity: .9; }
+.sv-square { width: 180px; height: 150px; border-radius: 12px; }
+.ratio-bar { display: flex; width: 100%; height: 56px; border-radius: 12px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .3); }
+.ratio-bar span { display: flex; align-items: center; justify-content: center; min-width: 0; }
+.ratio-bar i { font-style: normal; font-size: 12px; font-weight: 700; color: #222; background: rgba(255, 255, 255, .8); padding: 1px 5px; border-radius: 4px; white-space: nowrap; }
+
 /* ---------- 結果 ---------- */
 .result { text-align: center; padding-top: 24px; }
 .result h2 { margin: 12px 0 4px; }

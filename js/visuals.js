@@ -70,3 +70,29 @@ export function hueRing(labels = []) {
   }).join('');
   return `<div class="hue-ring-wrap static"><div class="hue-ring"></div>${tags}</div>`;
 }
+
+// 一排色塊（配色條）
+export function paletteStrip(colors, labels = []) {
+  return `<div class="strip">${colors.map((c, i) => `<span style="background:${c}">${labels[i] ? `<i>${labels[i]}</i>` : ''}</span>`).join('')}</div>`;
+}
+
+// 同時對比：兩個背景裡放小方塊
+export function surroundPair(bgA, innerA, bgB, innerB) {
+  const box = (bg, c) => `<span class="sur-box" style="background:${bg}"><span style="background:${c}"></span></span>`;
+  return `<div class="sur-pair">${box(bgA, innerA)}${box(bgB, innerB)}</div>`;
+}
+
+// 文字對比範例
+export function textSample(fg, bg, note = '') {
+  return `<div class="txt-sample" style="background:${bg};color:${fg}"><b>色彩學 Aa</b>${note ? `<small>${note}</small>` : ''}</div>`;
+}
+
+// 取色器方塊（固定色相，橫軸飽和度、縱軸明度）
+export function svSquare(hueHex) {
+  return `<div class="sv-square" style="background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,${hueHex})"></div>`;
+}
+
+// 比例長條，例如 60-30-10
+export function ratioBar(parts) {
+  return `<div class="ratio-bar">${parts.map(([c, pct, label]) => `<span style="background:${c};flex:${pct}"><i>${label}</i></span>`).join('')}</div>`;
+}

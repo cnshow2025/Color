@@ -7,8 +7,11 @@ import * as choice from './games/choice.js';
 import * as mix from './games/mix.js';
 import * as sort from './games/sort.js';
 import * as wheel from './games/wheel.js';
+import * as classify from './games/classify.js';
+import * as paint from './games/paint.js';
+import * as contrast from './games/contrast.js';
 
-const GAMES = { choice, mix, sort, wheel };
+const GAMES = { choice, mix, sort, wheel, classify, paint, contrast };
 const app = document.getElementById('app');
 
 // ---------- 進度存檔 ----------
@@ -239,11 +242,11 @@ function showRun(level, mode) {
     });
     buttons.push(nextBtn);
     sheet.className = 'sheet ' + (good ? 'good' : 'bad');
-    sheet.replaceChildren(
+    sheet.replaceChildren(...[
       h('div', { class: 'sheet-title' }, (good ? '✓ ' : '✗ ') + title),
       res.detail ? h('p', { class: 'sheet-detail' }, res.detail) : null,
       q.explain ? h('p', { class: 'sheet-explain' }, q.explain) : null,
-      h('div', { class: 'sheet-btns' }, buttons));
+      h('div', { class: 'sheet-btns' }, buttons)].filter(Boolean));
     requestAnimationFrame(() => sheet.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
   }
 
