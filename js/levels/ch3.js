@@ -65,23 +65,34 @@ const hueIndex = (hex) => Math.round(hexToHsv(hex)[0] / 30) % 12;
 // ---------- 第 11 關：單色配色 ----------
 function monoPaintQ() {
   const hues = pick([0, 2, 4, 6, 8, 10], 3);
-  const palette = hues.flatMap((i) => schemePalette('mono', i).slice(0, 4));
+  // 每組：淺色、純色、兩個暗色（黃、綠、青本身很亮，加白後和純色幾乎一樣亮，所以多給暗色）
+  const groups = hues.map((i) => {
+    const hex = HUES12[i].hex;
+    return { label: `${HUES12[i].name}色系`, colors: [tintMix(hex, 0.6, 0), hex, tintMix(hex, 0, 0.35), tintMix(hex, 0, 0.65)] };
+  });
+  const ex = groups[0].colors;
   return {
-    type: 'paint', scene: 'poster', palette,
-    prompt: '用「單色配色」替風景上色：只能用同一個色相，而且要有深有淺',
+    type: 'paint', scene: 'poster', groups,
+    prompt: '用「單色配色」替風景上色：只能從同一組色系挑顏色，而且要有深有淺',
     explain: '單色配色只用一個色相，靠明度（深淺）變化做出層次。至少要用 3 種深淺，畫面才不會平平的。',
+    example: { sky: ex[0], mountain: ex[2], ground: ex[3], sun: ex[1] },
+    exampleNote: `範例只用了「${groups[0].label}」的 4 個深淺：天空最淺、太陽是純色、山比較深、地面最深。`,
     check(fills, regions) {
       const cols = regions.map((r) => fills[r.id]);
       const idx = cols.map(hueIndex);
       const counts = {};
       idx.forEach((i) => (counts[i] = (counts[i] || 0) + 1));
       const same = Math.max(...Object.values(counts));
+      const usedHues = Object.keys(counts).map((i) => HUES12[i].name);
+      const nColors = new Set(cols).size;
       const Ls = [...new Set(cols)].map(lightness).sort((a, b) => a - b);
       let levels = Ls.length ? 1 : 0;
       for (let k = 1; k < Ls.length; k++) if (Ls[k] - Ls[k - 1] >= 8) levels++;
       const score = (same === cols.length ? 0.7 : (same / cols.length) * 0.4) + (levels >= 3 ? 0.3 : levels === 2 ? 0.15 : 0);
       const notes = [];
-      notes.push(same === cols.length ? '✓ 全部是同一個色相' : `✗ 用了 ${Object.keys(counts).length} 種色相，單色配色只能用一種`);
+      notes.push(same === cols.length
+        ? `✓ ${nColors} 個顏色都屬於同一個色相（${usedHues[0]}）`
+        : `✗ 你用了 ${nColors} 個顏色，但它們屬於 ${usedHues.length} 種色相（${usedHues.join('、')}）。單色配色的顏色都要來自同一組色系`);
       notes.push(levels >= 3 ? `✓ 有 ${levels} 種深淺，層次豐富` : `✗ 只有 ${levels} 種深淺，至少要 3 種`);
       return { score, correct: score >= 0.99, detail: notes.join('；') };
     },
@@ -132,25 +143,32 @@ const compConcept = [
 
 // ---------- 第 15 關：三角配色上色 ----------
 function triadPaintQ() {
-  const palette = HUES12.flatMap((x) => [hsvHex(x.deg, 0.85, 0.95), hsvHex(x.deg, 0.35, 1)]);
+  const groups = HUES12.map((x) => ({ label: x.name, colors: [hsvHex(x.deg, 0.85, 0.95), hsvHex(x.deg, 0.35, 1)] }));
+  const b = randInt(0, 3);
+  const [A, B, Cc] = [b, b + 4, b + 8].map((i) => groups[i]);
   return {
-    type: 'paint', scene: 'poster', palette,
+    type: 'paint', scene: 'poster', groups, groupCols: 3,
     prompt: '用「三角配色」替風景上色：剛好用 3 個在色相環上相隔 120° 的色相',
-    explain: '三角配色是在色相環上畫一個正三角形。同一個色相可以用深或淺的版本，但總共只能有 3 個色相。',
+    explain: '三角配色是在色相環上畫一個正三角形。每一組色相有鮮豔和淺色兩個版本，可以混著用，但總共只能用 3 組。',
+    example: { sky: A.colors[1], mountain: B.colors[0], ground: Cc.colors[0], sun: A.colors[0] },
+    exampleNote: `範例用了「${A.label}、${B.label}、${Cc.label}」三組，它們在色相環上正好相隔 120°（隔 4 格）。`,
     check(fills, regions) {
-      const set = [...new Set(regions.map((r) => hueIndex(fills[r.id])))];
+      const cols = regions.map((r) => fills[r.id]);
+      const set = [...new Set(cols.map(hueIndex))];
       let pairs = 0;
-      for (let a = 0; a < set.length; a++) for (let b = a + 1; b < set.length; b++) {
-        if (hueDistance(set[a] * 30, set[b] * 30) === 120) pairs++;
+      for (let a = 0; a < set.length; a++) for (let c = a + 1; c < set.length; c++) {
+        if (hueDistance(set[a] * 30, set[c] * 30) === 120) pairs++;
       }
       let score;
       if (set.length === 3) score = pairs / 3;
       else if (set.length < 3) score = 0.3 * pairs;
       else score = Math.max(0, pairs / 3 - 0.3);
       const names = set.map((i) => HUES12[i].name).join('、');
+      const ok = set.length === 3 && pairs === 3;
       return {
-        score, correct: set.length === 3 && pairs === 3,
-        detail: `你用了 ${set.length} 個色相（${names}）` + (set.length === 3 && pairs === 3 ? '，剛好是正三角形！' : '。三角配色要剛好 3 個色相，彼此相隔 120°。'),
+        score, correct: ok,
+        detail: `你用了 ${new Set(cols).size} 個顏色，屬於 ${set.length} 個色相（${names}）` +
+          (ok ? '，剛好是正三角形！' : '。三角配色要剛好 3 個色相，彼此相隔 120°。'),
       };
     },
   };

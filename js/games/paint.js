@@ -1,6 +1,8 @@
 // 玩法 F：上色設計（先選調色盤裡的顏色，再點畫面區塊上色）
 // q = { scene: 'poster' | 'ui', palette: [hex], check: (fills) => { score, correct, detail } }
 //   fills = { 區塊 id: hex }
+//   可改用 groups: [{ label, colors: [hex] }] 把同一色相的顏色排在同一組，groupCols 為每排幾組
+//   example: { 區塊 id: hex } 作答後顯示的範例答案
 import { h, htmlToNode } from '../dom.js';
 
 // 每個場景的區塊依面積由大到小排列
@@ -47,7 +49,8 @@ export function render(root, q, done) {
   const confirm = h('button', { class: 'btn btn-primary btn-block', type: 'button', disabled: true }, '完成作品');
   const status = h('div', { class: 'sort-caption' });
 
-  const swatches = q.palette.map((hex) => {
+  const swatches = [];
+  const swatchBtn = (hex) => {
     const b = h('button', { class: 'paint-sw', type: 'button', style: { background: hex }, 'aria-label': hex });
     b.addEventListener('click', () => {
       if (finished) return;
@@ -55,8 +58,15 @@ export function render(root, q, done) {
       swatches.forEach((s) => s.classList.toggle('on', s === b));
       draw();
     });
+    swatches.push(b);
     return b;
-  });
+  };
+  const palette = q.groups
+    ? h('div', { class: 'paint-groups', style: { gridTemplateColumns: `repeat(${q.groupCols || 1}, 1fr)` } },
+      q.groups.map((g) => h('div', { class: 'paint-group' },
+        h('span', { class: 'paint-group-label' }, g.label),
+        h('div', { class: 'paint-group-sw' }, g.colors.map(swatchBtn)))))
+    : h('div', { class: 'paint-palette' }, q.palette.map(swatchBtn));
 
   svg.querySelectorAll('[data-r]').forEach((el) => {
     el.addEventListener('click', () => {
@@ -77,17 +87,23 @@ export function render(root, q, done) {
     confirm.disabled = finished || left.length > 0;
   }
 
+  const canvas = h('div', { class: 'paint-canvas' }, svg);
+
   confirm.addEventListener('click', () => {
     finished = true;
     confirm.disabled = true;
+    if (q.example) {
+      const ex = htmlToNode(scene.svg);
+      ex.querySelectorAll('[data-r]').forEach((el) => (el.style.fill = q.example[el.dataset.r]));
+      canvas.classList.add('paint-compare');
+      canvas.replaceChildren(
+        h('figure', {}, svg, h('figcaption', {}, '你的作品')),
+        h('figure', {}, ex, h('figcaption', {}, '範例答案')));
+      if (q.exampleNote) canvas.append(h('p', { class: 'paint-note' }, q.exampleNote));
+    }
     done(q.check(fills, scene.regions));
   });
 
-  root.append(
-    h('div', { class: 'paint-canvas' }, svg),
-    status,
-    h('div', { class: 'paint-palette' }, swatches),
-    confirm,
-  );
+  root.append(canvas, status, palette, confirm);
   draw();
 }

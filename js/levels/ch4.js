@@ -1,5 +1,5 @@
 // 第 4 章：色彩的感覺與應用（第 17～20 關）
-import { hsvHex, hexToHsv, greyForL, contrastRatio, hslToRgb, rgbToHex, hueDistance, pick, shuffle, randInt } from '../color-utils.js';
+import { HUES12, hsvHex, hexToHsv, greyForL, contrastRatio, hslToRgb, rgbToHex, hueDistance, pick, shuffle, randInt } from '../color-utils.js';
 import { swatch, paletteStrip, surroundPair, textSample, ratioBar, venn, wheel12 } from '../visuals.js';
 import { choice } from './common.js';
 
@@ -153,25 +153,32 @@ const ratioConcept = () => choice('在 60-30-10 法則中，「10%」的強調�
 function finalPaintQ() {
   const h = randInt(0, 11) * 30;
   const hues = [h, h + 180, h + 90];
-  const palette = hues.flatMap((d) => [hsvHex(d, 0.3, 1), hsvHex(d, 0.9, 0.95), hsvHex(d, 0.85, 0.5)]);
+  const hueName = (d) => HUES12[(d / 30) % 12].name;
+  const groups = hues.map((d) => ({ label: hueName(d), colors: [hsvHex(d, 0.3, 1), hsvHex(d, 0.9, 0.95), hsvHex(d, 0.85, 0.5)] }));
+  const [A, B] = groups;
   const family = (hex) => {
     const [hh] = hexToHsv(hex);
     return hues.map((d) => hueDistance(hh, d)).reduce((best, dist, i, arr) => (dist < arr[best] ? i : best), 0);
   };
   const vivid = (hex) => { const [, s, v] = hexToHsv(hex); return s * v; };
   return {
-    type: 'paint', scene: 'poster', palette,
+    type: 'paint', scene: 'poster', groups: shuffle(groups),
     prompt: '畢業作品：用「互補色」設計海報，而且面積最小的太陽要最鮮豔',
     explain: '互補色配色只用正對面的兩個色相（可以用它們的淺色、深色）。最小的面積放最鮮豔的顏色，就是強調色。',
+    example: { sky: A.colors[0], mountain: B.colors[2], ground: A.colors[2], sun: B.colors[1] },
+    exampleNote: `範例只用了互補的「${A.label}」和「${B.label}」兩組（相差 180°），太陽用最鮮豔的${B.label}。「${groups[2].label}」不是它們的互補色，不能用。`,
     check(fills, regions) {
-      const fams = regions.map((r) => family(fills[r.id]));
+      const cols = regions.map((r) => fills[r.id]);
+      const fams = cols.map(family);
       const set = new Set(fams);
       const onlyPair = !set.has(2);
       const both = set.has(0) && set.has(1);
       const sunVivid = regions.every((r) => r.id === 'sun' || vivid(fills.sun) >= vivid(fills[r.id]));
       const score = (onlyPair ? 0.4 : 0) + (onlyPair && both ? 0.3 : 0) + (sunVivid ? 0.3 : 0);
+      const used = [...set].map((i) => groups[i].label).join('、');
       const notes = [
-        onlyPair ? (both ? '✓ 只用了一組互補色' : '✗ 只用了一個色相，要把互補的兩個色相都用上') : '✗ 用到了不是互補色的第三個色相',
+        `你用了 ${new Set(cols).size} 個顏色，屬於 ${set.size} 個色相（${used}）`,
+        onlyPair ? (both ? '✓ 只用了一組互補色' : '✗ 只用了一個色相，要把互補的兩個色相都用上') : `✗ 用到了「${groups[2].label}」，它不是這組的互補色`,
         sunVivid ? '✓ 太陽是最鮮豔的強調色' : '✗ 太陽（最小面積）應該用最鮮豔的顏色',
       ];
       return { score, correct: score >= 0.99, detail: notes.join('；') };
